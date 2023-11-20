@@ -1,0 +1,5 @@
+source "Kconfig.zephyr"
+
+config UART
+	bool "Enable my function"
+	default n
