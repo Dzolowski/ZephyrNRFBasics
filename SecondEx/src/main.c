@@ -6,6 +6,8 @@
 #include <zephyr/sys/printk.h>
 #include <zephyr/drivers/uart.h>
 
+
+static K_FIFO_DEFINE(fifo_uart_rx_data);
 int main(void)
 {
     int ret;

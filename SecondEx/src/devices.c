@@ -4,7 +4,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>
-
+#include <stdlib.h> 
 
 
 LOG_MODULE_REGISTER(Second_ex,LOG_LEVEL_DBG);
@@ -12,10 +12,14 @@ const struct gpio_dt_spec led0 = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 const struct gpio_dt_spec led1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
 const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
 const struct device *uart= DEVICE_DT_GET(DT_NODELABEL(uart0));
-
-
-uint8_t tx_buf[50] =   {"UART EXAMPLE \n\r"
-                             "PASSWORD is 101 to unlock diodes\n\r"};
+struct uart_data_t {
+	void *fifo_reserved;
+	uint8_t data[128];
+	uint16_t len;
+};
+K_FIFO_DEFINE(uart_fifo);
+uint8_t tx_buf[100] =   {"UART EXAMPLE \n\r"
+                             "PASSWORD is admin to unlock diodes\n\r"};
 uint8_t rx_buf[RECEIVE_BUFF_SIZE] = {0};
 
 void uart_cb(const struct device *dev, struct uart_event *evt, void *user_data)
@@ -27,13 +31,15 @@ void uart_cb(const struct device *dev, struct uart_event *evt, void *user_data)
 
 if ((evt->data.rx.len) > 0)
 {
-    char *received_line = malloc(evt->data.rx.len + 1);  // +1 na znak null-termination
+    char *received_line = malloc(evt->data.rx.len );  // +1 na znak null-termination
     printk("Received %d bytes\n", evt->data.rx.len);
 // Kopiowanie danych do received_line
 
 // Po przetworzeniu danych
 
     int line_index = 0;
+
+    static bool mResponsePacketReadyToProcess = false;
 
     // Copy data into a separate buffer, excluding newline characters
     for (int i = 0; i < evt->data.rx.len; ++i)
@@ -42,22 +48,24 @@ if ((evt->data.rx.len) > 0)
         {
             received_line[line_index++] = evt->data.rx.buf[evt->data.rx.offset + i];
         }
+        // Check end-of-packet delimiter, assume lf =='/n' for now
+        if (evt->data.rx.buf[evt->data.rx.offset + i] == '\n')
+        {
+            mResponsePacketReadyToProcess = true;
+        }
     }
 
+ // Only process the buffer when the entire string has been received
+ if (mResponsePacketReadyToProcess)
+ {
+    mResponsePacketReadyToProcess = false;
     // Null-terminate the string
     received_line[line_index] = '\0';
-int buf_size = sizeof(evt->data.rx.buf) / sizeof(evt->data.rx.buf[0]);
+    printk("Received line: %s\n", received_line);
+    // Process the received line as needed
+ }
+    // Null-terminate the string
 
-for (int i = 0; i < evt->data.rx.len; ++i)
-{
-    if (evt->data.rx.offset + i >= buf_size)
-    {
-        printk("Buffer overflow\n");
-        break;
-    }
-
-    // Rest of the code...
-}
     printk("Received line: %s\n", received_line);
 
     // Process the received line as needed
@@ -75,6 +83,7 @@ for (int i = 0; i < evt->data.rx.len; ++i)
         printk("Wrong input\n");
     }
     line_index = 0;
+    memset(evt->data.rx.buf, 0, sizeof(evt->data.rx.buf));
     free(received_line);
 }
 

@@ -7,7 +7,7 @@
 #define RECEIVE_TIMEOUT 100
 
 
-extern uint8_t tx_buf[50];
+extern uint8_t tx_buf[100];
 extern uint8_t rx_buf[RECEIVE_BUFF_SIZE];
 extern const struct device *uart;
 extern const struct gpio_dt_spec led0;
