@@ -1,0 +1,48 @@
+// To get started, press Ctrl+Space to bring up the completion menu and view the available nodes.
+
+// You can also use the buttons in the sidebar to perform actions on nodes.
+// Actions currently available include:
+
+// * Enabling / disabling the node
+// * Adding the bus to a bus
+// * Removing the node
+// * Connecting ADC channels
+
+// For more help, browse the DeviceTree documentation at https://docs.zephyrproject.org/latest/guides/dts/index.html
+// You can also visit the nRF DeviceTree extension documentation at https://nrfconnect.github.io/vscode-nrf-connect/devicetree/nrfdevicetree.html
+&arduino_i2c {
+	status = "okay";
+	bme280@76 {
+		compatible = "bosch,bme280";
+		reg = <0x76>;
+	};
+};
+/{
+    leds {
+        led4: led_4{
+            gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+            label = "LED 1";
+        
+        };
+        led5: led_5{
+            gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+            label = "LED 2";
+        
+        };
+        led6: led_6{
+            gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
+            label = "LED 3";
+        
+        };
+        led7: led_7{
+            gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+            label = "LED 4";
+        
+        };
+        led8: led_8{
+            gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+            label = "LED 5";
+        
+        };
+    };
+};
